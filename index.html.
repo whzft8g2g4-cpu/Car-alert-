@@ -1,0 +1,201 @@
+# Car-alert-
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بطاقة تنبيه السيارة 2406</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Cairo:wght@400;600;800&display=swap">
+<style>
+  /* Layout: a windshield-sized card centered on the page; the same file switches to the alert form when opened with #alert. */
+  :root {
+    --bg: #eceae6;
+    --surface: #ffffff;
+    --ink: #1c1e22;
+    --muted: #666a72;
+    --line: #d9d6d0;
+    --accent: #e8a317;
+    --accent-ink: #1c1e22;
+    --card: #23262b;
+    --card-ink: #f4f2ee;
+    --wa: #1f9d55;
+    --f-body: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    --f-num: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141519; --surface: #1f2126; --ink: #f1efea; --muted: #a2a5ad; --line: #34373e;
+      --card: #2b2e34; --card-ink: #f4f2ee; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141519; --surface: #1f2126; --ink: #f1efea; --muted: #a2a5ad; --line: #34373e;
+    --card: #2b2e34; --card-ink: #f4f2ee; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+    padding-block: 24px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  h1, h2, p { margin: 0; text-wrap: balance; }
+
+  /* QR card */
+  .card {
+    background: var(--card); color: var(--card-ink); border-radius: 14px; padding: 22px;
+    display: flex; flex-direction: column; gap: 18px; border: 1px solid var(--line);
+  }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .card-head h1 { font-size: 1.45rem; font-weight: 800; line-height: 1.25; }
+  .card-head small { display: block; font-size: .85rem; font-weight: 400; opacity: .75; margin-top: 2px; }
+  .plate {
+    direction: ltr; flex: none; background: var(--accent); color: var(--accent-ink); border-radius: 8px;
+    padding: 2px 14px 0; font-family: var(--f-num); font-weight: 700; font-size: 2.6rem; line-height: 1.15; letter-spacing: .06em;
+  }
+  .qr-box { background: #fff; border-radius: 10px; padding: 14px; align-self: center; width: 232px; height: 232px; display: grid; place-items: center; }
+  .qr-box img, .qr-box canvas { max-width: 100%; height: auto; }
+  .card-foot { text-align: center; font-weight: 600; }
+  .card-foot span { display: block; font-size: .85rem; font-weight: 400; opacity: .75; }
+
+  /* panels */
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .panel h2 { font-size: 1rem; font-weight: 800; }
+  .hint { color: var(--muted); font-size: .9rem; }
+  label { font-weight: 600; display: block; margin-bottom: 6px; }
+  label span, .en { font-weight: 400; color: var(--muted); font-size: .85em; }
+  select, input[type="text"] {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .btn {
+    display: block; width: 100%; text-align: center; text-decoration: none; font: inherit; font-weight: 800;
+    border-radius: 10px; padding: 13px 14px; border: 2px solid transparent; cursor: pointer;
+  }
+  .btn .en { display: block; font-weight: 400; color: inherit; opacity: .85; }
+  .btn-wa { background: var(--wa); color: #fff; }
+  .btn-alt { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .btn-accent { background: var(--accent); color: var(--accent-ink); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .num { direction: ltr; unicode-bidi: embed; font-family: var(--f-num); font-weight: 600; font-size: 1.3rem; letter-spacing: .04em; }
+  .linkbox { direction: ltr; font-size: .8rem; color: var(--muted); word-break: break-all; }
+
+  /* alert view header */
+  .alert-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .alert-head h1 { font-size: 1.5rem; font-weight: 800; line-height: 1.25; }
+  .alert-head .en { display: block; }
+  .toast { color: var(--wa); font-weight: 600; min-height: 1.4em; }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="cardView">
+  <section class="card" aria-label="بطاقة QR">
+    <div class="card-head">
+      <h1>تنبيه صاحب السيارة<small>Car Owner Alert</small></h1>
+      <div class="plate" aria-label="رقم السيارة 2406">2406</div>
+    </div>
+    <div class="qr-box" id="qr" role="img" aria-label="رمز QR لصفحة التنبيه"></div>
+    <p class="card-foot">امسح الرمز لإرسال تنبيه لصاحب السيارة<span>Scan to alert the car owner</span></p>
+  </section>
+
+  <section class="panel">
+    <h2>الاستخدام</h2>
+    <p class="hint">خذ لقطة شاشة للبطاقة واطبعها، ثم ضعها خلف الزجاج الأمامي. يجب أن يكون رابط الصفحة مفتوحاً لكل من لديه الرابط حتى يعمل الرمز لغيرك.</p>
+    <a class="btn btn-accent" href="#alert">جرّب صفحة التنبيه</a>
+    <div class="linkbox" id="linkText"></div>
+  </section>
+</div>
+
+<div class="wrap" id="alertView" hidden>
+  <div class="alert-head">
+    <h1>تنبيه صاحب السيارة <span class="en">Car Owner Alert</span></h1>
+    <div class="plate" style="font-size:2rem">2406</div>
+  </div>
+
+  <section class="panel">
+    <div>
+      <label for="reasonSelect">اختر سبب التنبيه <span>Select Reason</span></label>
+      <select id="reasonSelect">
+        <option value="أنت تقفل عليّ بالسيارة، الرجاء تحريكها | You blocked my car, please move it">أنت تقفل عليّ بالسيارة | You blocked my car</option>
+        <option value="أضواء سيارتك لا تزال مشتعلة | Your car lights are left on">أضواء سيارتك مشتعلة | Lights left on</option>
+        <option value="نافذة سيارتك مفتوحة | Your car window is open">نافذة سيارتك مفتوحة | Window is open</option>
+        <option value="صدمت سيارتك بالخطأ، تواصل معي | Accidentally hit your car, contact me">احتكاك بالسيارة | Car scratch/hit</option>
+      </select>
+    </div>
+    <div>
+      <label for="noteInput">ملاحظة إضافية <span>Note (Optional)</span></label>
+      <input type="text" id="noteInput" placeholder="اكتب ملاحظتك هنا...">
+    </div>
+    <a class="btn btn-wa" id="waLink" href="#" target="_blank" rel="noopener">إرسال عبر واتساب <span class="en">Send via WhatsApp</span></a>
+    <a class="btn btn-alt" id="smsLink" href="#">إرسال عبر SMS <span class="en">Send via SMS</span></a>
+    <div class="row">
+      <span class="hint">رقم صاحب السيارة</span>
+      <span class="num" id="phoneText">+971556825568</span>
+      <button class="btn btn-alt" id="copyBtn" type="button" style="width:auto;padding:6px 14px">نسخ الرسالة</button>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  const PLATE = "2406";
+  const phoneNumber = "971556825568";
+  // Set to the published artifact link after publishing; the QR opens this link with #alert.
+  const PAGE_URL = "";
+
+  const cardView = document.getElementById('cardView');
+  const alertView = document.getElementById('alertView');
+  const sel = document.getElementById('reasonSelect');
+  const note = document.getElementById('noteInput');
+  const wa = document.getElementById('waLink');
+  const sms = document.getElementById('smsLink');
+
+  function messageText() {
+    let t = `تنبيه بشأن سيارتك رقم ${PLATE} / Car Alert (${PLATE}):\n- ${sel.value}`;
+    if (note.value.trim()) t += `\n- ملاحظة/Note: ${note.value.trim()}`;
+    return t;
+  }
+  function refreshLinks() {
+    const enc = encodeURIComponent(messageText());
+    wa.href = `https://wa.me/${phoneNumber}?text=${enc}`;
+    sms.href = `sms:+${phoneNumber}?body=${enc}`;
+  }
+  sel.addEventListener('change', refreshLinks);
+  note.addEventListener('input', refreshLinks);
+
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const toast = document.getElementById('toast');
+    try { await navigator.clipboard.writeText(messageText()); toast.textContent = 'تم نسخ الرسالة'; }
+    catch (e) { toast.textContent = 'تعذر النسخ، حدد النص يدوياً'; }
+  });
+
+  let qrBuilt = false;
+  function buildQR() {
+    if (qrBuilt || typeof QRCode === 'undefined') return;
+    const base = PAGE_URL || location.href.split('#')[0];
+    const target = base + '#alert';
+    document.getElementById('linkText').textContent = target;
+    new QRCode(document.getElementById('qr'), {
+      text: target, width: 204, height: 204, colorDark: '#000000', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    qrBuilt = true;
+  }
+
+  function route() {
+    const isAlert = location.hash === '#alert';
+    alertView.hidden = !isAlert;
+    cardView.hidden = isAlert;
+    if (!isAlert) buildQR();
+  }
+  window.addEventListener('hashchange', route);
+  refreshLinks();
+  route();
+</script>
+</body>
+</html>
